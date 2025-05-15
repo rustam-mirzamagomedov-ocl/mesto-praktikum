@@ -20,7 +20,7 @@ export default defineConfig([
     extends: compat.extends(
       "eslint:recommended",
       "plugin:@typescript-eslint/recommended",
-      "plugin:prettier/recommended",
+      "plugin:prettier/recommended"
     ),
 
     plugins: {
@@ -32,8 +32,9 @@ export default defineConfig([
       parser: tsParser,
     },
 
+    ignores: ["dist/**/*"],
     rules: {
-      "prettier/prettier": "error",
+      "prettier/prettier": "warn",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

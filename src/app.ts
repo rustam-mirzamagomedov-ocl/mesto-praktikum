@@ -1,11 +1,46 @@
+import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
+import mongoose from "mongoose";
+import { errorMiddleware } from "./middleware/error.middleware";
+import { tempMiddleware } from "./middleware/temp.middleware";
+import { cardRouter } from "./routes/card";
+import { userRouter } from "./routes/user";
+
+const { PORT = 3000, MONGO_DB_NAME, MONGO_DB_PATH } = process.env;
 
 const app = express();
+mongoose.connect(`${MONGO_DB_PATH}/${MONGO_DB_NAME}`);
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
+
+// Временное решение до внедрения авторизации
+app.use(tempMiddleware);
+
+app.use("/users", userRouter);
+app.use("/cards", cardRouter);
+
+app.use(errorMiddleware);
+
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-});
+const shutdown = async () => {
+  try {
+    await mongoose.disconnect();
+    console.log("MongoDB disconnected");
+
+    server.close(() => {
+      console.log("Server closed");
+    });
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+  }
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+process.on("SIGQUIT", shutdown);
