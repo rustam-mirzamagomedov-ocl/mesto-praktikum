@@ -1,25 +1,42 @@
 import { model, Schema } from "mongoose";
-import { isEmail, isURL } from "../utils/validation";
+import validator from "validator";
 
 export const UserSchema = new Schema(
   {
-    name: { type: String, required: true, minlength: 2, maxlength: 30 },
-    about: { type: String, required: true, minlength: 2, maxlength: 200 },
+    name: {
+      type: String,
+      minlength: 2,
+      maxlength: 30,
+      default: "Жак-Ив Кусто",
+    },
+    about: {
+      type: String,
+      minlength: 2,
+      maxlength: 200,
+      default: "Исследователь",
+    },
     avatar: {
       type: String,
-      required: true,
-      validate: { validator: isURL, message: "Некорректный URL" },
+      validate: {
+        validator: (value: string) => validator.isURL(value),
+        message: "Некорректный URL",
+      },
+      default:
+        "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
     },
     email: {
       type: String,
       required: true,
       unique: true,
-      validate: { validator: isEmail, message: "Некорректный Email" },
+      validate: {
+        validator: (value: string) => validator.isEmail(value),
+        message: "Некорректный Email",
+      },
     },
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      select: false,
     },
   },
   {

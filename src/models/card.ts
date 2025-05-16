@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { isURL } from "../utils/validation";
+import validator from "validator";
 
 export const CardSchema = new Schema(
   {
@@ -7,7 +7,10 @@ export const CardSchema = new Schema(
     link: {
       type: String,
       required: true,
-      validate: { validator: isURL, message: "Некорректный URL" },
+      validate: {
+        validator: (value: string) => validator.isURL(value),
+        message: "Некорректный URL",
+      },
     },
     owner: { type: Schema.Types.ObjectId, ref: "user", required: true },
     likes: { type: [Schema.Types.ObjectId], ref: "user", default: [] },

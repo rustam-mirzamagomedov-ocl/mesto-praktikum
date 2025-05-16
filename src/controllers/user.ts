@@ -17,24 +17,6 @@ export const getUsers = async (
   }
 };
 
-export const createUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { name, about, avatar, email, password } = req.body;
-    const user = await User.create({ name, about, avatar, email, password });
-    res.status(201).send(user);
-  } catch (error) {
-    if (error instanceof mongoose.Error.ValidationError) {
-      next(new BadRequestError(error.message));
-      return;
-    }
-    next(error);
-  }
-};
-
 export const getUserById = async (
   req: Request,
   res: Response,

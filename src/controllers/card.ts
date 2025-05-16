@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { BadRequestError } from "../errors/bad-request";
+import { ForbiddenError } from "../errors/forbidden";
 import { NotFoundError } from "../errors/not-found";
 import { Card } from "../models/card";
 export const getCards = async (
@@ -44,14 +45,21 @@ export const deleteCard = async (
   next: NextFunction,
 ) => {
   try {
-    const card = await Card.findByIdAndDelete(req.params.cardId).populate(
-      "owner",
-    );
+    const card = await Card.findById(req.params.cardId).populate("owner");
+
     if (!card) {
       next(new NotFoundError("Карточка не найдена"));
       return;
     }
-    res.status(200).json(card);
+
+    if (card.owner._id.toString() !== req.user._id) {
+      next(new ForbiddenError("Вы не можете удалить эту карточку"));
+      return;
+    }
+
+    await card.deleteOne();
+
+    res.status(200).json({ message: "Карточка удалена" });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
       next(new BadRequestError("Некорректный формат ID карточки"));
