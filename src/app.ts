@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import { errorMiddleware } from "./middleware/error.middleware";
+import { limiter } from "./middleware/limiter.middleware";
 import { tempMiddleware } from "./middleware/temp.middleware";
 import { cardRouter } from "./routes/card";
 import { userRouter } from "./routes/user";
@@ -15,6 +16,7 @@ mongoose.connect(`${MONGO_DB_PATH}/${MONGO_DB_NAME}`);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
+app.use(limiter);
 
 // Временное решение до внедрения авторизации
 app.use(tempMiddleware);
@@ -23,6 +25,10 @@ app.use("/users", userRouter);
 app.use("/cards", cardRouter);
 
 app.use(errorMiddleware);
+
+app.use((_, res) => {
+  res.status(404).send({ message: "Страница не найдена" });
+});
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

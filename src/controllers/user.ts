@@ -12,7 +12,7 @@ export const getUsers = async (
   try {
     const users = await User.find({});
     res.status(200).send(users);
-  } catch (error: unknown) {
+  } catch (error) {
     next(error);
   }
 };
@@ -23,11 +23,11 @@ export const createUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, about, avatar } = req.body;
-    const user = await User.create({ name, about, avatar });
+    const { name, about, avatar, email, password } = req.body;
+    const user = await User.create({ name, about, avatar, email, password });
     res.status(201).send(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
       next(new BadRequestError(error.message));
       return;
     }
@@ -41,11 +41,6 @@ export const getUserById = async (
   next: NextFunction,
 ) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-      next(new BadRequestError("Некорректный ID пользователя"));
-      return;
-    }
-
     const user = await User.findById(req.params.userId);
     if (!user) {
       next(new NotFoundError("Пользователь не найден"));
@@ -53,7 +48,11 @@ export const getUserById = async (
     }
 
     res.status(200).send(user);
-  } catch (error: unknown) {
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      next(new BadRequestError("Некорректный формат ID"));
+      return;
+    }
     next(error);
   }
 };
@@ -70,12 +69,12 @@ export const getProfile = async (
       return;
     }
     res.status(200).send(user);
-  } catch (error: unknown) {
+  } catch (error) {
     next(error);
   }
 };
 
-export const updateUser = async (
+export const updateProfile = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -87,6 +86,7 @@ export const updateUser = async (
       { name, about },
       {
         new: true,
+        runValidators: true,
       },
     );
     if (!user) {
@@ -94,12 +94,16 @@ export const updateUser = async (
       return;
     }
     res.status(200).send(user);
-  } catch (error: unknown) {
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(new BadRequestError(error.message));
+      return;
+    }
     next(error);
   }
 };
 
-export const updateUserAvatar = async (
+export const updateProfileAvatar = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -111,6 +115,7 @@ export const updateUserAvatar = async (
       { avatar },
       {
         new: true,
+        runValidators: true,
       },
     );
     if (!user) {
@@ -118,8 +123,8 @@ export const updateUserAvatar = async (
       return;
     }
     res.status(200).send(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
       next(new BadRequestError(error.message));
       return;
     }

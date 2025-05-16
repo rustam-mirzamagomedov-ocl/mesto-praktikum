@@ -6,7 +6,6 @@ export const errorMiddleware = (
   res: Response,
   _: NextFunction,
 ) => {
-  console.error(err);
   if (err instanceof Error) {
     if ("statusCode" in err && typeof err.statusCode === "number") {
       res.status(err.statusCode).send({ message: err.message });

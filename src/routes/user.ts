@@ -4,8 +4,8 @@ import {
   getProfile,
   getUserById,
   getUsers,
-  updateUser,
-  updateUserAvatar,
+  updateProfile,
+  updateProfileAvatar,
 } from "../controllers/user";
 
 export const userRouter = Router();
@@ -13,6 +13,6 @@ export const userRouter = Router();
 userRouter.get("/", getUsers);
 userRouter.post("/", createUser);
 userRouter.get("/me", getProfile);
+userRouter.patch("/me", updateProfile);
 userRouter.get("/:userId", getUserById);
-userRouter.patch("/:userId", updateUser);
-userRouter.patch("/me/avatar", updateUserAvatar);
+userRouter.patch("/me/avatar", updateProfileAvatar);

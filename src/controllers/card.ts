@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import { BadRequestError } from "../errors/bad-request";
 import { NotFoundError } from "../errors/not-found";
 import { Card } from "../models/card";
-
 export const getCards = async (
   _: Request,
   res: Response,
@@ -11,11 +11,7 @@ export const getCards = async (
   try {
     const cards = await Card.find({}).populate(["owner", "likes"]);
     res.status(200).json(cards);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      next(new BadRequestError(error.message));
-      return;
-    }
+  } catch (error) {
     next(error);
   }
 };
@@ -33,8 +29,8 @@ export const createCard = async (
     });
     const populatedCard = await card.populate("owner");
     res.status(201).json(populatedCard);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
       next(new BadRequestError(error.message));
       return;
     }
@@ -56,9 +52,9 @@ export const deleteCard = async (
       return;
     }
     res.status(200).json(card);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      next(new BadRequestError(error.message));
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      next(new BadRequestError("Некорректный формат ID карточки"));
       return;
     }
     next(error);
@@ -78,12 +74,13 @@ export const addLike = async (
       },
       {
         new: true,
+        runValidators: true,
       },
     );
     res.status(200).json(card);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      next(new BadRequestError(error.message));
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      next(new BadRequestError("Некорректный формат ID карточки"));
       return;
     }
     next(error);
@@ -103,12 +100,13 @@ export const removeLike = async (
       },
       {
         new: true,
+        runValidators: true,
       },
     );
     res.status(200).json(card);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      next(new BadRequestError(error.message));
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      next(new BadRequestError("Некорректный формат ID карточки"));
       return;
     }
     next(error);
