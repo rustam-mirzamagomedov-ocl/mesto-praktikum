@@ -22,10 +22,10 @@ const validateEnv = (): Env => {
   const { error, value } = envSchema.validate(
     {
       PORT: process.env.PORT ? Number.parseInt(process.env.PORT) : undefined,
-      MONGO_DB_NAME: process.env.MONGO_DB_NAME,
-      MONGO_DB_PATH: process.env.MONGO_DB_PATH,
-      JWT_SECRET: process.env.JWT_SECRET,
-      NODE_ENV: process.env.NODE_ENV,
+      MONGO_DB_NAME: process.env.MONGO_DB_NAME ?? "mesto",
+      MONGO_DB_PATH: process.env.MONGO_DB_PATH ?? "mongodb://localhost:27017",
+      JWT_SECRET: process.env.JWT_SECRET ?? "dev-secret",
+      NODE_ENV: process.env.NODE_ENV ?? "development",
     },
     { abortEarly: false },
   );

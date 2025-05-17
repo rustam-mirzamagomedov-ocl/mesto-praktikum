@@ -61,7 +61,13 @@ export const signUp = async (
       password: hash,
     });
 
-    res.status(201).send(newUser);
+    res.status(201).send({
+      _id: newUser._id,
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+      email: newUser.email,
+    });
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === 11000) {
       next(new ConflictError("Пользователь с таким email уже существует"));

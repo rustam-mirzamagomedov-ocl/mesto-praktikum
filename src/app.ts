@@ -5,6 +5,7 @@ import express from "express";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import { signIn, signUp } from "./controllers/auth";
+import { NotFoundError } from "./errors/not-found";
 import { authMiddleWare } from "./middleware/auth.middleware";
 import { errorMiddleware } from "./middleware/error.middleware";
 import { limiter } from "./middleware/limiter.middleware";
@@ -12,6 +13,7 @@ import { errorLogger, requestLogger } from "./middleware/logger";
 import { cardRouter } from "./routes/card";
 import { userRouter } from "./routes/user";
 import { env } from "./utils/env";
+import { signinValidator, signupValidator } from "./validators/auth";
 
 const app = express();
 mongoose.connect(`${env.MONGO_DB_PATH}/${env.MONGO_DB_NAME}`);
@@ -29,21 +31,23 @@ app.use(
 app.use(requestLogger);
 app.use(limiter);
 
-app.use("/signup", signUp);
-app.use("/signin", signIn);
+app.use("/signup", signupValidator, signUp);
+app.use("/signin", signinValidator, signIn);
 
 app.use(authMiddleWare);
 
 app.use("/users", userRouter);
 app.use("/cards", cardRouter);
 
+// https://expressjs.com/en/guide/migrating-5.html#path-syntax
+// Видимо в 5 версии вместо /* используется /*splat, так как * должен иметь имя
+app.use("/*splat", (_, __, next) => {
+  next(new NotFoundError("Маршрут не найден"));
+});
+
 app.use(errorLogger);
 app.use(errors());
 app.use(errorMiddleware);
-
-app.use((_, res) => {
-  res.status(404).send({ message: "Страница не найдена" });
-});
 
 const server = app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
